@@ -1,0 +1,321 @@
+You are a coding agent that programs in Rhovas, a novel programming language. The documentation follows:
+
+# Language Tour
+
+This page is a high-level overview of Rhovas that covers most of the important constructs/features. While there are some specific details and motivation included, most of this information will be covered in other pages rather than here in the overview.
+
+## Language Constructs
+
+Language constructs are the different expressions, statements, and components used to structure a Rhovas program.
+
+### Literals
+
+Rhovas supports many of the standard literal types seen in other languages, including different number bases/notations, escape characters, and interpolation.
+
+- Null: `null`
+- Boolean: `true`, `false`
+- Integer: `42`, `0xFFA500`
+- Decimal: `101.5`, `6.022e23`
+- String: `"string"`, `"\n\r\t"`, `"val = ${val}"`
+- Atom: `:atom`
+- List: `[x, y, z]`
+- Object: `{x: 1, y: 2, z: 3}`, `{x, y, z}`
+
+Notably missing are Character literals, since the concept of a character is not well-defined and varies between languages (e.g. Swift and Rust). Instead, it is likely Rhovas will support separate types for working with graphemes and/or code points as needed.
+
+Additionally, it's worth calling attention to atoms as they're less common. Atoms (or sometimes Symbols) are effectively runtime values for identifiers and can be used as named constants. Rhovas encourages using atoms for option-like function parameters instead of booleans or custom enums, as in:
+
+```rhovas
+range(1, 100, :incl);
+File.open("file.txt", :read, :write);
+```
+
+### Operators
+
+Rhovas supports most standard unary/binary operators and two indexing operators.
+
+**Unary:**
+- `!`: Logical Negation
+- `-`: Numerical Negation
+
+**Binary:**
+- `+`, `-`, `*`, `/`: Mathematical (supports operator overloading)
+- `<`, `<=`, `>`, `>=`: Comparison (supports operator overloading via Comparable)
+- `==`, `!=`: Equality (supports operator overloading via Equatable)
+- `===`, `!==`: Identity Equality
+- `&&`, `||`: Logical And/Or
+
+**Indexing:**
+- `[]`: Access (supports operator overloading)
+- `[]=`: Assignment (supports operator overloading)
+
+There are a few categories of operators not included primarily for readability, ease of understanding, and/or having ambiguous behavior: `%` (modulus/remainder), `+=/-=/*=//=` (compound assignment), `++/--` (increment/decrement), `<<`/`>>`/`&`/`|`/`^` (bitwise). Operators with necessary functionality like modulus or left shift instead have methods on the types that support them.
+
+### Operator Overloading
+
+Rhovas supports operator overloading for a limited subset of operators: `+`, `-`, `*`, `/`, `[]`, and `[]=` (as well as indirectly for comparison/equality). Defining an overload requires both the operator and a descriptive name for that type to assist clarity (e.g. Vector op+ add versus Set op+ union). It is generally better to prefer using these names when not in a math-heavy context.
+
+```rhovas
+struct Vector {
+    var x: Integer;
+    var y: Integer;
+    func op+ add(other: Vector): Vector { ... }
+}
+```
+
+### Variables
+
+Variables are defined with `val` (immutable) or `var` (mutable). Type inference is supported with an initial value, otherwise the type must be specified. Shadowing variables is also allowed.
+
+```rhovas
+val x = 1;
+var y: Integer;
+y = 2;
+```
+
+The intention is for variable declarations to also support pattern matching, however this has some design quirks and hasn't been finalized.
+
+### Functions
+
+Functions are defined with `func` and require a name, parameters, and a return type (if not Void) to be explicitly specified. Type inference is not supported to prevent implementation types from leaking into the API.
+
+```rhovas
+func add(x: Integer, y: Integer): Integer {
+    return x + y;
+}
+```
+
+Functions also support a wide mix of other features including overloading, generics, default arguments, mutability permissions, and throws declarations for exceptions. As with variables, the intention is for function parameters to support pattern matching as well however this hasn't been finalized.
+
+### Lambdas
+
+Lambdas (anonymous functions) are also supported. They can be written directly using `func`, but more commonly are created implicitly through trailing lambdas which are passed to other functions. Type inference is supported for both the parameters and return type.
+
+```rhovas
+numbers.map(func(num) { num + 1 })
+numbers.map |num| { num + 1 }
+```
+
+The implicit parameter `val` (like Kotlin it) can also be used for referencing lambda arguments, which is either the single argument itself or a struct of multiple arguments.
+
+```rhovas
+numbers.filter { val > 0 }
+numbers.reduce(0) { val.accumulator + val.element }
+```
+
+### If/Else
+
+If statements allow branching based on a condition, as in most other languages.
+
+```rhovas
+if (condition) { ... }
+if (condition) { ... } else { ... }
+```
+
+Unlike other languages, if can also be used as a functional form to filter values into a nullable result.
+
+```rhovas
+1.if { val > 0 } == 1;
+0.if { val > 0 } == null;
+```
+
+### Match
+
+Match statements have two forms: conditional (if/else chains) and structural (pattern matching).
+
+#### Conditional Match
+
+A conditional match contains multiple arbitrary conditions in the same was as if/else chains. Conditions do not have to be exhaustive, so the else case is optional and acts like an assertion.
+
+```rhovas
+match {
+    x > 0: print("x is positive");
+    else y > 0: print("y is positive");
+    //if neither is true, an AssertionError is thrown
+}
+```
+
+#### Structural Match
+
+A structural match takes an argument and applies pattern matching. Unlike conditional match, a structural match must be exhaustive. The else case can be used when the compiler is not able to verify the patterns are exhaustive, which as above acts like an assertion.
+
+```rhovas
+match (list) {
+    []: print("empty");
+    else [head, *]: print("head = ${head}");
+}
+```
+
+### For
+
+A for loop iterates over an iterable value, as with foreach loops in most other languages.
+
+```rhovas
+for (val element in iterable) { ... }
+```
+
+Like if, for can be used as a functional form as well.
+
+```rhovas
+iterable.for { ... }
+```
+
+Rhovas, like Kotlin, does not support the traditional three-part for loop. In most cases iterating over ranges is a better alternative (like list.indices) and for other situations a while loop may be used.
+
+### While
+
+A while loop repeatedly executes code while a condition is true, as in most other languages.
+
+```rhovas
+while (condition) { ... }
+```
+
+A do/while loop does not currently exist, though will likely be supported.
+
+### Try/Catch/Finally
+
+A try statement is used to catch exceptions or ensure certain cleanup occurs, as in most other languages. Multiple catch blocks are supported, and at least one catch/finally block must be defined.
+
+```rhovas
+try { ... } catch (val e: Exception) { ... }
+try { ... } finally { ... }
+```
+
+### With
+
+A with statement is used for managing the automatic acquisition and release of resources. Resources are acquired when entering the body and released when exited, including when an exception is thrown.
+
+```rhovas
+with (file) { ... }
+with (val file = File.open(...)) { ... }
+```
+
+### Structs
+
+Structs are objects intended to store structured data, as with Kotlin data classes or Java records. Structs include default definitions for a constructor, standard methods like equals/toString, and struct transformation utilities like select/copy.
+
+```rhovas
+struct Vector {
+    var x: Decimal;
+    var y: Decimal;
+}
+val vector = Vector(1.0, 2.0);
+```
+
+Structs can be considered a restricted form of classes with three key differences. First, the fields of a struct are considered part of the API (therefore, adding new fields is a breaking change, unlike classes). Second, a struct cannot maintain invariants between fields since they can be set independently (provided it is mutable). Finally, structs do not support inheritance like classes but can implement interfaces. These restrictions allow structs to support pattern matching and more aggressive optimizations.
+
+### Classes
+
+Classes are objects supporting the full range of Object-Oriented capabilities, particularly encapsulation and inheritance. Unlike structs, classes are intended to maintain invariants and should only be used if these features are necessary.
+
+```rhovas
+class UnitVector {
+    var x: Decimal { public get }
+    var y: Decimal { public get }
+    ensure x * x + y * y == 1.0;
+    func setDirection(x: Decimal, y: Decimal) {
+        require x != 0.0 || y != 0.0;
+        this.x = ...
+        this.y = ...
+    }
+}
+```
+
+> Note: For sake of explicitness, the above example doesn't account for precision and assumes mutable data is necessary. In most cases, an immutable UnitVector struct like the previous example would be sufficient for this, or alternatively a better abstraction for magnitude/direction. Examples are just that - examples!
+
+#### Inheritance
+
+Classes may also use inheritance to extend (or be extended by) other classes. A class must explicitly opt-in to inheritance using `virtual` or `abstract`. Similarly, only `virtual` or `abstract` functions can be overridden and must include `override`. In general, inheritance is always opt-in and the superclass must design its API with inheritance in mind to ensure correct behavior.
+
+```rhovas
+abstract class Base {
+    virtual func method() { ... }
+}
+class Derived: Base {
+    override func method() { ... }
+}
+```
+
+## Language Features
+
+Language features are the additional ideas and functionality included that make Rhovas, well, Rhovas! These range from high-level concepts down to simple syntax sugar, but are ultimately intended to support the mission of API design and enforcement.
+
+### Embedded DSLs
+
+DSLs, or Domain Specific Languages, are languages specifically designed for a given problem/application like regex, SQL, and HTML. Rhovas supports creating embedded DSLs through syntax macros, which allow DSLs to be used directly in Rhovas code with the language's original syntax:
+
+```rhovas
+val name = "Name";
+db.query(#sql {
+    SELECT * FROM users
+    WHERE name = ${name}
+}
+```
+
+The example SQL DSL above handles the name variable through interpolation, not concatenation, which prevents issues like SQL injection since the variable is never mixed with the actual source code.
+
+These DSLs are currently transformed into a function taking two arguments: A list of string literals and a list of values (similar to JavaScript Tagged Templates and Scala Interpolators). More advanced transformations are planned but waiting on macro support.
+
+```rhovas
+func sql(literals: List<String>, values: List<Any>);
+sql(["SELECT * FROM users\nWHERE name = ", ""], [name])
+```
+
+Embedded DSLs are great for problems that already have established DSLs, like SQL, since the syntax is well-known and documented. DSLs for custom languages should be used more sparingly in the same way a framework would (or at least should).
+
+For more information on the theory/research behind syntax macros, see the blog posts Introducing Syntax Macros and Semantic Analysis Abstractions.
+
+### Mutability
+
+Rhovas allows types to include mutability permissions, which provide static restrictions on the mutability of references and the underlying object. There are currently three permissions:
+
+- **Readable (Type)**: The reference is read-only, but the object may be mutable.
+- **Mutable (+Type)**: The reference (and therefore object) is mutable. However, the object may also have other mutable references.
+- **Immutable (-Type)**: The object is immutable, thus no mutable references exist. However, the object may reference other objects which are not immutable (such as -List<T> being an immutable list containing potentially mutable elements), making this shallow immutability.
+
+Two other permissions being discussed are Constant (for deep immutability and compile-time constants) and Unique (for ownership/lifetimes, thread safety, and mutable to immutable conversions).
+
+Methods that mutate the object must be prefixed with `+`, as in `func +mutate()`, which may only be used by mutable references.
+
+A related restriction is pure / referentially transparent functions, which is still under discussion.
+
+### Pipelining
+
+Another feature from functional languages, pipelining allows a left-hand receiver to be passed as the first argument to a function. The result is similar to the syntax of a method call, as shown below.
+
+```rhovas
+function(object, arguments...);
+object.|function(arguments...);
+```
+
+Pipelining has two major advantages, mainly due to similarity with methods:
+
+- **Readability**: The left-to-right order is often easier to understand when chaining compared to nested functions (h(g(f())) vs f().|g().|h()).
+- **Discoverability**: An IDE can offer suggestions for object.|, like with methods, to both find and tab-complete available functions.
+
+### Extension Functions
+
+Some language support extension functions, which allow defining new methods (really functions) on an existing class. Since pipelining syntax is nearly identical to a method call, it works well for this use case.
+
+```rhovas
+func extension(object: Any) { ... }
+object.|extension()
+```
+
+Note that `object.|extension()` is an extension function using pipelining while `object.extension()` is a method. It is important to keep this syntactic difference for two reasons:
+
+1. Extension functions are still functions and are thus resolved statically, not dynamically like methods. This can affect how overloads are resolved, especially considering type inference.
+2. It is better to keep these scopes separated to avoid API compatability issues from the class adding new methods. This separation also helps IDEs (and the compiler itself) locate definitions easily and provide better support overall.
+
+### Properties
+
+A property is effectively syntax sugar for getter/setter methods that look like fields. In addition to the benefits from using getters/setters over direct field access, properties are also contained in a single unit (helpful for metaprogramming) and generally represent 'simple' operations.
+
+```rhovas
+object.property;            //object.property();
+object.property = value;    //object.property(value);
+```
+
+A common issue raised with properties is that they can perform arbitrary computation, which can make it hard to reason about the effects of getting or setting a property. Rhovas intends on restricting properties to ensure the behavior of getters/setters matches the expectations of fields (such as with side effects, consistency between get/set, etc.). These restrictions are still being determined, but is likely that some cannot be strictly enforced.
+
+For more details on the cost/benefits of properties and potential restrictions, see the blog post A Case for Properties.
