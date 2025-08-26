@@ -38,7 +38,11 @@ Do not use the `?` shortcut.
 def prompt(msgs):
     stream = client.chat.completions.create(
         messages=msgs,
-        model="qwen-3-coder-480b",
+        ##################
+        # !!! RESET ME !!!
+        model="qwen-3-235b-a22b-instruct-2507",
+        #model="qwen-3-coder-480b",
+        ##################
         stream=False,
         max_completion_tokens=40000,
         temperature=0.7,
@@ -63,57 +67,3 @@ for n in range(10):
     f=open("a.err")
     err=f.read()
     f.close()
-
-    messages[2]["content"] = """
-Given the program
-```
-""" + ans + """
-```
-
-and the error
-
-```
-""" + err + """
-```
-
-can you please write a revised program?
-"""
-
-messages[2]["content"] = open(sys.argv[1]).read()
-messages[2]["content"] += """
-Try to write the program in a functional style.
-"""
-
-for n in range(10,20):
-    print("Shot: "+str(n))
-    ans = prompt(messages)
-    print(ans)
-
-    f=open("y.rap","w")
-    f.write(ans)
-    f.close()
-
-    r = os.system("./rap y.rap")
-    print(r)
-    if r==0:
-        sys.exit(0)
-
-    f=open("a.err")
-    err=f.read()
-    f.close()
-
-    messages[2]["content"] = """
-Given the program
-```
-""" + ans + """
-```
-
-and the error
-
-```
-""" + err + """
-```
-
-can you please write a revised program?
-"""
-
