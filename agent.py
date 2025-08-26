@@ -24,9 +24,9 @@ messages=[
             "content": """
 Use lowercase for keywords.
 For comments use an initial backslash instead of `(*` and `*)`.
-If you get an error for for loops, instead of `::` and `всё` use `цикл` and `кц`.
+If you get an error for for loops,
+instead of `::` and `всё` use `цикл` and `кц`.
 Do not use the `?` shortcut.
-Instead of
             """
         },
         {
@@ -58,7 +58,7 @@ for n in range(10):
     r = os.system("./rap y.rap")
     print(r)
     if r==0:
-        break
+        sys.exit(0)
 
     f=open("a.err")
     err=f.read()
@@ -78,3 +78,42 @@ and the error
 
 can you please write a revised program?
 """
+
+messages[2]["content"] = open(sys.argv[1]).read()
+messages[2]["content"] += """
+Try to write the program in a functional style.
+"""
+
+for n in range(10,20):
+    print("Shot: "+str(n))
+    ans = prompt(messages)
+    print(ans)
+
+    f=open("y.rap","w")
+    f.write(ans)
+    f.close()
+
+    r = os.system("./rap y.rap")
+    print(r)
+    if r==0:
+        sys.exit(0)
+
+    f=open("a.err")
+    err=f.read()
+    f.close()
+
+    messages[2]["content"] = """
+Given the program
+```
+""" + ans + """
+```
+
+and the error
+
+```
+""" + err + """
+```
+
+can you please write a revised program?
+"""
+
