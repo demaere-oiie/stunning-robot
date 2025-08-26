@@ -1,0 +1,7 @@
+if grep '```' $1; then
+    cat $1 | awk -f demd.awk > a.rap
+else
+    cat $1 > a.rap
+fi
+../rapture/build/install/rapture/bin/rapture a.rap 2> a.err
+[ ! -s a.err ]
