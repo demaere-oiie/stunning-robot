@@ -38,11 +38,7 @@ Do not use the `?` shortcut.
 def prompt(msgs):
     stream = client.chat.completions.create(
         messages=msgs,
-        ##################
-        # !!! RESET ME !!!
-        model="qwen-3-235b-a22b-instruct-2507",
-        #model="qwen-3-coder-480b",
-        ##################
+        model="qwen-3-coder-480b",
         stream=False,
         max_completion_tokens=40000,
         temperature=0.7,
