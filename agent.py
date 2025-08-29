@@ -63,3 +63,18 @@ for n in range(10):
     f=open("a.err")
     err=f.read()
     f.close()
+
+    messages[2]["content"] = """
+Given the program
+```
+""" + ans + """
+```
+
+and the error
+
+```
+""" + err + """
+```
+
+can you please write a revised program?
+"""
