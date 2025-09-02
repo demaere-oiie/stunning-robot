@@ -2,8 +2,6 @@ import dspy
 import os
 import sys
 
-target = open("targ.bb")
-task   = open("task.fac")
 
 lm = dspy.LM("cerebras/qwen-3-coder-480b",
         api_key=os.environ['CEREBRAS_API_KEY'])
@@ -11,12 +9,15 @@ dspy.configure(lm=lm)
 
 prog = dspy.Predict("target, task-> program")
 
+target = open("targ.bb").read()
 trainset = [
     dspy.Example({
-        'target': target.read(),
-        'task': task.read() + "Please use `Du chek` to check your program",
-	'program': 'Da fak(n) im chu\n    n*fak(n-1) detim 1<=n;\n    1          detim owta.'}).with_inputs('target','task')
-]*2
+        'target': target,
+        'task': task + "Please use `Du chek` to check your program",
+	'program': ''}).with_inputs('target','task')
+    for t in "task.fac task.gcd task.is task.ms task.kos task.tarj".split()
+    for task in [open(t).read()]
+]
 
 def submetric(cmd):
     score = 0.0
@@ -52,4 +53,8 @@ def metric(gold, pred, trace=None):
     return score
 
 mipro = dspy.MIPROv2(metric=metric)
-optimized_prog = mipro.compile(prog, trainset=trainset)
+optimized_prog = mipro.compile(prog,
+                               trainset=trainset,
+                               fewshot_aware_proposer=False)
+
+optimized_prog.save("dspy-mipro.json")
