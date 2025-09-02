@@ -54,3 +54,5 @@ def metric(gold, pred, trace=None):
 
 boot = dspy.BootstrapFewShot(metric=metric)
 optimized_prog = boot.compile(prog, trainset=trainset)
+
+optimized_prog.save("dspy-train.json")
