@@ -5,10 +5,15 @@ import sys
 dspy.configure(lm=dspy.LM("cerebras/qwen-3-coder-480b",
         api_key=os.environ['CEREBRAS_API_KEY']))
 
-prog = dspy.Predict("target, task-> program")
+class Coder(dspy.Signature):
+    """Generate program source."""
+    target: str = dspy.InputField(desc="Documentation for the target language")
+    task: str = dspy.InputField(desc="The algorithm we want code for")
+    program: str = dspy.OutputField(desc="The generated program")
+
+prog = dspy.Predict(Coder)
 
 target = open("targ.bb").read()
-task   = open("task.fac")
 trainset = [
     dspy.Example({
         'target': target,
