@@ -1,4 +1,5 @@
 import dspy
+import subprocess
 
 class Coder(dspy.Signature):
     """Generate program source."""
@@ -17,21 +18,12 @@ def trainingset():
       for task in [open("task."+t).read()]
     ]
 
-def submetric(cmd):
+def submetric(cmd, inp):
     score = 0.0
 
-    r = os.system(cmd + " 2> a.err")
-    print(r)
-    if r==0:
-        score += 0.5
-
-    f=open("a.err")
-    err=f.read()
-    f.close()
-    if len(err)==0:
-        score += 0.5
-
-    return score
+    cp = subprocess.run(cmd, input=inp.encode("utf8"), capture_output=True)
+    print(cp.returncode)
+    return 0.5 * (cp.returncode==0) + 0.5 * (len(cp.stderr)==0)
 
 def metric(gold, pred, trace=None):
     score = 0.0
@@ -40,12 +32,8 @@ def metric(gold, pred, trace=None):
     print(pred.program)
     print("----")
 
-    f=open("a.bb","w")
-    f.write(pred.program)
-    f.close()
-
-    score += submetric("./bb < a.bb")/2.
-    score += submetric("./bb --test < a.bb")/2.
+    score += submetric(["../beltabol/bin/bb"], pred.program)/2.
+    score += submetric(["../beltabol/bin/bb", "--test"], pred.program)/2.
 
     print("==== " + str(score))
     return score
