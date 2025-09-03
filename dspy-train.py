@@ -1,5 +1,6 @@
 import dsconfig
 import dspy
+from .dsconfig import Coder
 
 dspy.configure(lm=dsconfig.lm())
 
