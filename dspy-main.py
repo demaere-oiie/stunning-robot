@@ -1,5 +1,5 @@
+import dsconfig
 import dspy
-import os
 import sys
 
 if len(sys.argv) < 3:
@@ -9,9 +9,7 @@ if len(sys.argv) < 3:
 target = open(sys.argv[1])
 task   = open(sys.argv[2])
 
-lm = dspy.LM("cerebras/qwen-3-coder-480b",
-        api_key=os.environ['CEREBRAS_API_KEY'])
-dspy.configure(lm=lm)
+dspy.configure(lm=dsconfig.lm())
 
 prog = dspy.Predict("target, task-> program")
 

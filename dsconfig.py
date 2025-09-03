@@ -1,5 +1,17 @@
 import dspy
+import logging
+import os
 import subprocess
+
+def lm():
+    if 'CEREBRAS_API_KEY' in os.environ:
+        return dspy.LM("cerebras/qwen-3-coder-480b",
+            api_key=os.environ['CEREBRAS_API_KEY'])
+    else:
+        logging.getLogger("dspy").setLevel(logging.DEBUG)
+        return dspy.LM("ollama_chat/deepseek-coder:33b",
+            cache=False,
+            api_base='http://localhost:11434')
 
 class Coder(dspy.Signature):
     """Generate program source."""
