@@ -1,1 +1,0 @@
-../beltabol/bin/bb $*
