@@ -170,7 +170,8 @@ def configure_lm(model: str, api_base: str | None) -> dspy.LM:
     return dspy.LM(model=model)
 
 
-def build_and_compile(beltabol_docs: str, *, shots: int = 4) -> dspy.Module:
+def build_and_compile(beltabol_docs: str, *,
+  shots: int = 4, cached: bool = True) -> dspy.Module:
     generator = BeltabolCodeGenerator(beltabol_docs)
     trainset = build_trainset(beltabol_docs)
 
@@ -179,7 +180,11 @@ def build_and_compile(beltabol_docs: str, *, shots: int = 4) -> dspy.Module:
         max_bootstrapped_demos=shots,
         max_labeled_demos=shots,
     )
-    compiled = optimizer.compile(generator, trainset=trainset)
+    if cached:
+        compiled = dspy.load("./beltabolcoder/")
+    else:
+        compiled = optimizer.compile(generator, trainset=trainset)
+        compiled.save("./beltabolcoder/", save_program=True)
     return compiled
 
 
@@ -208,13 +213,20 @@ def main() -> None:
         type=int,
         default=4,
     )
+    parser.add_argument(
+        "--cached",
+        type=str,
+        default="True",
+    )
     args = parser.parse_args()
+    args.cached = (args.cached != "False")
 
     lm = configure_lm(args.model, args.api_base)
     dspy.settings.configure(lm=lm)
 
     beltabol_docs = load_beltabol_docs()
-    compiled = build_and_compile(beltabol_docs, shots=args.shots)
+    compiled = build_and_compile(beltabol_docs,
+        shots=args.shots, cached=args.cached)
 
     specification = read_specification_arg(args.spec)
     result = compiled(specification=specification)
