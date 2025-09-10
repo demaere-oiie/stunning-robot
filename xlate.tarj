@@ -1,0 +1,84 @@
+Please translate the following python program:
+```
+def tarjan_scc(graph):
+    """
+    Tarjan's algorithm for finding strongly connected components (SCCs) in a directed graph.
+    
+    Args:
+        graph: A dictionary representing the adjacency list of the graph
+               where keys are nodes and values are lists of adjacent nodes
+    
+    Returns:
+        A list of lists, where each inner list represents a strongly connected component
+    """
+    
+    # Index counter for assigning discovery times
+    index_counter = [0]
+    # Stack to keep track of nodes in the current path
+    stack = []
+    # Dictionary to store the discovery index of each node
+    index = {}
+    # Dictionary to store the low-link value of each node
+    lowlink = {}
+    # Set to keep track of nodes currently on the stack
+    on_stack = set()
+    # List to store the strongly connected components
+    sccs = []
+    
+    def strongconnect(node):
+        # Assign the current index to the node
+        index[node] = index_counter[0]
+        lowlink[node] = index_counter[0]
+        index_counter[0] += 1
+        
+        # Push the node onto the stack
+        stack.append(node)
+        on_stack.add(node)
+        
+        # Consider all successors of the node
+        for successor in graph.get(node, []):
+            if successor not in index:
+                # Successor has not been visited yet; recurse on it
+                strongconnect(successor)
+                lowlink[node] = min(lowlink[node], lowlink[successor])
+            elif successor in on_stack:
+                # Successor is on the stack, so it's in the current SCC
+                lowlink[node] = min(lowlink[node], index[successor])
+        
+        # If node is a root node, pop the stack and create an SCC
+        if lowlink[node] == index[node]:
+            component = []
+            while True:
+                w = stack.pop()
+                on_stack.remove(w)
+                component.append(w)
+                if w == node:
+                    break
+            sccs.append(component)
+    
+    # Run the algorithm for each unvisited node
+    for node in graph:
+        if node not in index:
+            strongconnect(node)
+    
+    return sccs
+
+# Example usage:
+if __name__ == "__main__":
+    # Example graph represented as an adjacency list
+    graph = {
+        'A': ['B'],
+        'B': ['C', 'E', 'F'],
+        'C': ['D', 'G'],
+        'D': ['C', 'H'],
+        'E': ['A', 'F'],
+        'F': ['G'],
+        'G': ['F'],
+        'H': ['G', 'H']
+    }
+    
+    sccs = tarjan_scc(graph)
+    print("Strongly Connected Components:")
+    for i, component in enumerate(sccs):
+        print(f"SCC {i+1}: {component}")
+```
