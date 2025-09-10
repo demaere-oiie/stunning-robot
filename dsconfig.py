@@ -36,8 +36,9 @@ def devset():
       dspy.Example({
         'beltabol_docs': target,
         'specification': task + "Please use `Du chek` to check your program",
+        'points': p,
 	}).with_inputs('beltabol_docs','specification')
-      for t in "fac gcd is ms kos tarj".split()
+      for t,p in [("fac",1),("gcd",1),("is",2),("ms",2),("kos",3),("tarj",4)]
       for task in [open("task."+t).read()]
     ]
 
@@ -56,7 +57,7 @@ def metric(gold, pred, trace=None):
     else:
         prog = pred.beltabol_code
 
-    print("----")
+    print("---- " + str(gold.points))
     print(prog)
     print("----")
 
@@ -65,4 +66,4 @@ def metric(gold, pred, trace=None):
         score += submetric(["../beltabol/bin/bb", "--test"], prog)/2.
 
     print("==== " + str(score))
-    return score
+    return score * gold.points
