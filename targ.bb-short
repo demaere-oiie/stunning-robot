@@ -1,0 +1,110 @@
+# Beltabol Programming Language - Concise Guide
+
+Beltabol is a novel eager functional language with four built-in datatypes: integers, strings, lists, and sets.
+
+## Basic Datatypes & Operations
+
+**Integers**: `0`, `42` with arithmetic `+`, `-`, `*`, `/` (integer division). Relational operators `<`, `<=`, `==`, `>=`, `>`, `<>` return `0` (false) or `1` (true).
+
+**Strings**: `"foo"` concatenated with `:=:`. Empty string `""` is identity.
+
+**Lists**: `[0, "wang", []]` concatenated with `:=:`. Empty list `[]` is identity.
+
+**Sets**: `{0, "nada", []}` unioned with `:=:`. Empty set `{}` is identity.
+- **Maps**: Special sets with key:value pairs: `{"key":0,"other":1}`. Access via `map@"key"`.
+
+## Advanced Operations
+
+**Cons/Snoc**: `<:` prepends, `>:` appends (strings/lists only).
+- `"b"<:"elta" == "belta"`
+- `[0]:>[1] == [0,1]`
+
+**Indexing**: `@` operator accesses elements.
+- `"foobar"@1 == "o"`
+- `[0,1,2]@2 == 2`
+- Integer bits: `42@0` gives least significant bit
+
+**Bit operations**: `0<:4 == 8`, `1<:4 == 5` (cons for integers shifts bits)
+
+## User-Defined Types
+
+```
+Da TreeType imalowda Leaf() | Node(left, value, right).
+```
+
+## Functions
+
+**Definition**: Functions composed with `,`. Application via `f(x)` or `f $ x`.
+**Operators as functions**: Use `(+)` for operator as identifier, `` `mod` `` for identifier as operator.
+
+## Compound Expressions
+
+### Chu (Conditional)
+Like Lisp's COND - evaluates first matching guard:
+```
+Da abs(n) im chu
+    n   detim 0<=n;
+    0-n detim owta.
+```
+
+**Pattern matching** with `?=`:
+- `0 detim n?=42;` (integer match)
+- `len(h)+len(t) detim s?=h:=:t;` (string decomposition)
+- `process(h,t) detim xs?=h<:t;` (list decomposition)
+
+### Fong (Let-binding)
+**Key: Bindings evaluate bottom-to-top!**
+```
+Da example im fong result
+    wit result deting x + y;  // Evaluated last
+    wit y      deting 10;     // Evaluated second  
+    wit x      deting 5.      // Evaluated first
+```
+
+**List comprehensions** with `delowda`:
+```
+Da squares im fong x*x
+    wit x delowda [1,2,3,4].  // Produces [1,4,9,16]
+```
+
+**Mutual recursion** with `unte`:
+```
+Da even(n) im fong even(4)
+    wit even(n) deting (chu 1 detim n==0; odd(n-1) detim owta)
+    unte
+    wit odd(n) deting (chu 0 detim n==0; even(n-1) detim owta).
+```
+
+## Statements
+
+1. **Definition**: `Da name im expression.`
+2. **Algebraic types**: `Da TypeName imalowda Constructor(args).`  
+3. **Tests**: `Du chek expression im expected_value.`
+4. **Debug**: `Showxa expression.`
+
+## Key Language Features
+
+- **No tuples**: Use lists instead
+- **Comments**: `// to end of line`
+- **Precedence**: `@` > arithmetic > `:=:` > relational > `?=`, `&&` > `$`
+- **Guards**: Can use `&&` for multiple conditions
+- **Lexical ordering**: Strings and lists ordered lexicographically
+- **Special values**: `owta` = 1 (True)
+
+## Essential Standard Library
+
+- `len(v)` - length of value
+- `max(x,y)` - maximum 
+- `mod(i,j)` - modulo
+- `chr(n)`, `ord(c)` - character conversion
+- `(**)(b,e)` - exponentiation
+- `sqrt(n)` - integer square root
+
+## Example Program
+```
+Da factorial(n) im chu
+    n*factorial(n-1) detim 1<=n;
+    1                detim owta.
+
+Du chek factorial(5) im 120.
+```
