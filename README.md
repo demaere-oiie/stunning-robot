@@ -15,3 +15,7 @@ were given at the [Recurse Center](https://www.recurse.com/) during the Fall 1 2
 A strong model and good language documentation had far, far, more of an effect on output than varying agent architecctures.
 
 The more your "novel" language looks like JavaScript, the more likely LLMs will be to generate cromulent code.
+
+## architecture
+
+![tune](docs/tune.dot.png)
