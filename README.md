@@ -12,7 +12,7 @@ were given at the [Recurse Center](https://www.recurse.com/) during the Fall 1 2
 
 ## takeaways: the bitter lesson
 
-- A strong model and good language documentation had far, far, more of an effect on output than varying agent architecctures.
+- A strong model and good language documentation had far, far, more of an effect on output than varying agent architectures.
 
 - The more your "novel" language looks like JavaScript, the more likely LLMs will be to generate cromulent code.
 
